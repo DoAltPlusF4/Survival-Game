@@ -6,11 +6,11 @@ TILE_SIZE = 16
 HEADER_SIZE = 32
 
 # Game Settings, should be configurable
-CAMERA_SPEED = 50
-LOAD_DISTANCE = 5
+CAMERA_SPEED = 4
+LOAD_DISTANCE = 2
 VIEWPORT_SIZE = (
-    CHUNK_SIZE*TILE_SIZE*3,
-    CHUNK_SIZE*TILE_SIZE*2
+    round(CHUNK_SIZE*TILE_SIZE*1.5),
+    round(CHUNK_SIZE*TILE_SIZE)
 )
 
 # Tile Colours, will be moved into the mods system

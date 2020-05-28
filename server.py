@@ -49,15 +49,17 @@ class Server:
                 message = c_socket.recv(length)
 
                 broken = False
+                tries = 0
                 while True:
                     try:
                         data = pickle.loads(message)
                         break
                     except pickle.UnpicklingError:
                         broken = True
+                        tries += 1
                         message += c_socket.recv(1)
                 if broken:
-                    print("Resolved broken packet.")
+                    print(f"Resolved broken packet with {tries} tries.")
 
                 if "type" not in data.keys():
                     print(f"Received invalid request:\n{data}")

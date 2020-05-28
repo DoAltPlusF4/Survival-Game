@@ -79,31 +79,61 @@ class Client:
             math.floor(self.camera_position.y/c.TILE_SIZE/c.CHUNK_SIZE)
         )
 
-        if len(self.chunk_buffer) > 0:
-            chunk = list(self.chunk_buffer.values())[0]
-            chunk.generateTiles(self, batch=self.world_batch)
-            self.chunks[chunk.position] = chunk
-            del self.chunk_buffer[chunk.position]
+        in_load_distance = [
+            (x+self.camera_chunk[0], y+self.camera_chunk[1])
+            for x, y in source.spiral(c.LOAD_DISTANCE)
+        ]
 
-        if len(self.to_unload) > 0:
-            position = self.to_unload[0]
-            if position in self.chunks.keys():
-                chunk = self.chunks[position]
-                chunk.delete()
-                del self.chunks[position]
-            self.to_unload.remove(position)
+        while True:
+            if len(self.chunk_buffer) > 0:
+                chunk = list(self.chunk_buffer.values())[0]
+                del self.chunk_buffer[chunk.position]
+                if chunk.position in in_load_distance:
+                    chunk.generateTiles(self, batch=self.world_batch)
+                    self.chunks[chunk.position] = chunk
+                    break
+            else:
+                break
 
-        if len(self.to_request) > 0:
-            position = self.to_request[0]
-            data = {
-                "type": "chunk_request",
-                "position": position
-            }
-            self.send(data)
-            self.to_request.remove(position)
+        while True:
+            if len(self.to_unload) > 0:
+                position = self.to_unload[0]
+                self.to_unload.remove(position)
+                if (
+                    position in self.chunks.keys() and
+                    position not in in_load_distance
+                ):
+                    chunk = self.chunks[position]
+                    chunk.delete()
+                    del self.chunks[position]
+                    break
+            else:
+                break
 
-        if self.camera_chunk not in self.chunks.keys():
-            self.to_request.append(self.camera_chunk)
+        while True:
+            if len(self.to_request) > 0:
+                position = self.to_request[0]
+                self.to_request.remove(position)
+                if position in in_load_distance:
+                    data = {
+                        "type": "chunk_request",
+                        "position": position
+                    }
+                    self.send(data)
+                    break
+            else:
+                break
+
+        for pos in in_load_distance:
+            if (
+                pos not in self.chunks.keys() and
+                pos not in self.to_request
+            ):
+                self.to_request.append(pos)
+
+        for pos in self.chunks.keys():
+            if pos not in in_load_distance:
+                self.to_unload.append(pos)
 
         if self.key_handler[key.W]:
             self.camera_position.y += c.TILE_SIZE*dt*c.CAMERA_SPEED
@@ -125,15 +155,17 @@ class Client:
                 message = self.socket.recv(length)
 
                 broken = False
+                tries = 0
                 while True:
                     try:
                         data = pickle.loads(message)
                         break
                     except pickle.UnpicklingError:
                         broken = True
+                        tries += 1
                         message += self.socket.recv(1)
                 if broken:
-                    print("Resolved broken packet.")
+                    print(f"Resolved broken packet with {tries} tries.")
 
                 if data["type"] == "log":
                     print(data["message"])
@@ -151,7 +183,7 @@ class Client:
         zoom = min(
             self.window.width/c.VIEWPORT_SIZE[0],
             self.window.height/c.VIEWPORT_SIZE[1]
-        ) / 10
+        )
 
         if self.world_camera.zoom != zoom:
             self.world_camera.zoom = zoom
