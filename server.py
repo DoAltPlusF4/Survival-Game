@@ -1,3 +1,4 @@
+import json
 import pickle
 import socket
 import threading
@@ -104,5 +105,7 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server("", 25565)
+    with open("server_config.json", "r") as f:
+        config = json.load(f)
+    server = Server(config["ip"], config["port"])
     server.run()

@@ -1,8 +1,8 @@
+import json
 import math
 import pickle
 import socket
 import threading
-import time
 
 import pyglet
 import pymunk
@@ -223,5 +223,7 @@ class Client:
 
 
 if __name__ == "__main__":
-    client = Client("doaltplusf4.ddns.net", 25565)
+    with open("client_config.json", "r") as f:
+        config = json.load(f)
+    client = Client(config["ip"], config["port"])
     client.run()
