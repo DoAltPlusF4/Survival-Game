@@ -1,8 +1,8 @@
 import json
-import math
 import pickle
 import socket
 import threading
+import time
 
 import pyglet
 import pymunk
@@ -30,7 +30,7 @@ class Client:
         self.window = pyglet.window.Window(
             width=1280,
             height=720,
-            caption="Entity Test 1",
+            caption="Entity Test 2",
             resizable=True
         )
         self.window.set_minimum_size(*c.VIEWPORT_SIZE)
@@ -54,14 +54,10 @@ class Client:
 
         self.debug_mode = False
 
-        self.camera_position = pymunk.Vec2d.zero()
-        self.camera_chunk = (0, 0)
-        self.camera_zoom = 1
-
         self.physics_space = pymunk.Space()
 
         self.position_label = pyglet.text.Label(
-            text=f"X: {round(self.camera_position.x/c.TILE_SIZE, 3)}, Y: {round(self.camera_position.y/c.TILE_SIZE, 3)}",
+            text="X: 0, Y: 0",
             batch=self.ui_batch,
             font_size=10,
             x=5,
@@ -69,6 +65,7 @@ class Client:
         )
 
         self.entities = []
+        self.player = None
 
         self.chunks = {}
         self.chunk_buffer = {}
@@ -91,13 +88,9 @@ class Client:
     def update(self, dt):
         self.physics_space.step(dt)
         self.position_camera()
-        self.camera_chunk = (
-            math.floor(self.camera_position.x/c.TILE_SIZE/c.CHUNK_SIZE),
-            math.floor(self.camera_position.y/c.TILE_SIZE/c.CHUNK_SIZE)
-        )
 
         in_load_distance = [
-            (x+self.camera_chunk[0], y+self.camera_chunk[1])
+            (x+self.player.chunk[0], y+self.player.chunk[1])
             for x, y in source.spiral(c.LOAD_DISTANCE)
         ]
 
@@ -152,15 +145,7 @@ class Client:
             if pos not in in_load_distance:
                 self.to_unload.append(pos)
 
-        if self.key_handler[key.W]:
-            self.camera_position.y += c.TILE_SIZE*dt*c.CAMERA_SPEED
-        if self.key_handler[key.A]:
-            self.camera_position.x -= c.TILE_SIZE*dt*c.CAMERA_SPEED
-        if self.key_handler[key.S]:
-            self.camera_position.y -= c.TILE_SIZE*dt*c.CAMERA_SPEED
-        if self.key_handler[key.D]:
-            self.camera_position.x += c.TILE_SIZE*dt*c.CAMERA_SPEED
-        self.position_label.text = f"X: {round(self.camera_position.x/c.TILE_SIZE, 3)}, Y: {round(self.camera_position.y/c.TILE_SIZE, 3)}"
+        self.position_label.text = f"X: {round(self.player.position.x/c.TILE_SIZE, 3)}, Y: {round(self.player.position.y/c.TILE_SIZE, 3)}"
 
     def socket_thread(self):
         while True:
@@ -184,6 +169,11 @@ class Client:
                         data["chunk"].position not in self.chunks.keys()
                     ):
                         self.chunk_buffer[data["chunk"].position] = data["chunk"]
+                elif data["type"] == "player_assignment":
+                    self.player = data["player"]
+                    self.player.create_collider()
+                    self.player.space = self.physics_space
+                    self.entities.append(self.player)
 
             except (ConnectionAbortedError, ConnectionResetError) as e:
                 print("Disconnected.")
@@ -201,8 +191,8 @@ class Client:
         x = -self.window.width//2/zoom
         y = -self.window.height//2/zoom
 
-        x += self.camera_position.x
-        y += self.camera_position.y
+        x += self.player.position.x
+        y += self.player.position.y
 
         x, y = round(x), round(y)
 
@@ -244,6 +234,14 @@ class Client:
             daemon=True
         )
         socket_thread.start()
+
+        while self.player is None:
+            time.sleep(1)
+            print("Waiting for player...")
+        self.player.create_sprite(
+            batch=self.world_batch,
+            group=self.world_layers["player"]
+        )
 
         pyglet.clock.schedule(self.update)
         pyglet.app.run()

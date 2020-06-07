@@ -19,7 +19,7 @@ POLY = {
 
 CIRCLE = {
     "type": "circle",
-    "x": float, "y": float,
+    "offset": (float, float),
     "radius": float,
     "collision_type": int
 }
@@ -67,10 +67,7 @@ def circle(data):
     collider = pymunk.Circle(
         None,
         radius=data["radius"],
-        offset=(
-            data["x"],
-            data["y"]
-        )
+        offset=data["offset"]
     )
     collider.collision_type = data["collision_type"]
     return collider

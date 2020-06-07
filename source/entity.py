@@ -1,6 +1,10 @@
+import math
+import pickle
+
 import pyglet
 import pymunk
 
+from . import constants as c
 from .col_dicts import dict_to_collider
 
 
@@ -15,6 +19,13 @@ class Entity(pymunk.Body):
         if colliders is not None:
             for collider in colliders:
                 self.add_collider(collider)
+
+    @property
+    def chunk(self):
+        return (
+            self.position.x / c.TILE_SIZE // c.CHUNK_SIZE,
+            self.position.y / c.TILE_SIZE // c.CHUNK_SIZE
+        )
 
     @property
     def space(self):
@@ -37,14 +48,12 @@ class Entity(pymunk.Body):
 
         self.colliders.append(col)
 
-    def create_sprite(self, colour, offset, width, height, batch=None, group=None):
+    def create_sprite(self, image, offset, batch=None, group=None):
         self.sprite_offset = pymunk.Vec2d(offset)
-        self.sprite = pyglet.shapes.Rectangle(
+        self.sprite = pyglet.sprite.Sprite(
+            image,
             x=self.position.x+self.sprite_offset.x,
             y=self.position.y+self.sprite_offset.y,
-            width=width,
-            height=height,
-            color=colour,
             batch=batch,
             group=group
         )

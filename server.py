@@ -1,12 +1,14 @@
 import json
 import pickle
+import random
 import socket
 import threading
+import time
+
+import pymunk
 
 import source
 from source import constants as c
-
-import random
 
 
 class Server:
@@ -21,8 +23,18 @@ class Server:
 
         self.clients = {}
 
+        self.physics_space = pymunk.Space()
+
+        self.entities = []
+        self.players = {}
+
         self.seed = random.random()
         self.chunks = {}
+
+    def update_loop(self, update_frequency):
+        while True:
+            self.physics_space.step(1/update_frequency)
+            time.sleep(1/update_frequency)
 
     def socket_thread(self):
         self.socket.listen()
@@ -41,6 +53,20 @@ class Server:
     def threaded_client(self, c_socket, c_address):
         print(f"Accepted new connection from {c_address[0]}:{c_address[1]}.")
         self.clients[c_address] = c_socket
+
+        player = source.player.Player()
+        self.entities.append(player)
+        self.players[c_socket] = player
+
+        data = {
+            "type": "player_assignment",
+            "player": player
+        }
+        self.send(c_socket, data)
+
+        player.create_collider()
+        player.space = self.physics_space
+
         while True:
             try:
                 header_bytes = b""
@@ -82,7 +108,12 @@ class Server:
                     f"Connection from {c_address[0]}:{c_address[1]} was reset."
                 )
                 del self.clients[c_address]
+                del self.players[c_socket]
                 break
+
+    def broadcast(self, data):
+        for socket in self.clients.values():
+            self.send(socket, data)
 
     def send(self, socket, data):
         message = pickle.dumps(data)
@@ -92,9 +123,10 @@ class Server:
     def run(self):
         socket_thread = threading.Thread(
             target=self.socket_thread,
-            daemon=False  # NOTE: Change this to True when adding physics loop!
+            daemon=True
         )
         socket_thread.start()
+        self.update_loop(60)
 
 
 if __name__ == "__main__":
