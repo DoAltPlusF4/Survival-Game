@@ -75,7 +75,7 @@ class Client:
         self.ui_batch.draw()
 
     def update(self, dt):
-        self.positionCamera()
+        self.position_camera()
         self.camera_chunk = (
             math.floor(self.camera_position.x/c.TILE_SIZE/c.CHUNK_SIZE),
             math.floor(self.camera_position.y/c.TILE_SIZE/c.CHUNK_SIZE)
@@ -91,7 +91,7 @@ class Client:
                 chunk = list(self.chunk_buffer.values())[0]
                 del self.chunk_buffer[chunk.position]
                 if chunk.position in in_load_distance:
-                    chunk.generateTiles(self, batch=self.world_batch)
+                    chunk.generate_tiles(self, batch=self.world_batch)
                     self.chunks[chunk.position] = chunk
                     break
             else:
@@ -147,7 +147,7 @@ class Client:
             self.camera_position.x += c.TILE_SIZE*dt*c.CAMERA_SPEED
         self.position_label.text = f"X: {round(self.camera_position.x/c.TILE_SIZE, 3)}, Y: {round(self.camera_position.y/c.TILE_SIZE, 3)}"
 
-    def socketThread(self):
+    def socket_thread(self):
         while True:
             try:
                 header_bytes = self.socket.recv(c.HEADER_SIZE)
@@ -181,7 +181,7 @@ class Client:
                 print("Disconnected.")
                 break
 
-    def positionCamera(self):
+    def position_camera(self):
         zoom = min(
             self.window.width/c.VIEWPORT_SIZE[0],
             self.window.height/c.VIEWPORT_SIZE[1]
@@ -232,7 +232,7 @@ class Client:
                 print("Server did not respond, retrying.")
 
         socket_thread = threading.Thread(
-            target=self.socketThread,
+            target=self.socket_thread,
             daemon=True
         )
         socket_thread.start()

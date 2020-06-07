@@ -24,7 +24,7 @@ class Server:
         self.seed = random.random()
         self.chunks = {}
 
-    def socketThread(self):
+    def socket_thread(self):
         self.socket.listen()
         print(f"Listening on {self.address}:{self.port}.")
 
@@ -32,13 +32,13 @@ class Server:
             c_socket, c_address = self.socket.accept()
 
             c_thread = threading.Thread(
-                target=self.threadedClient,
+                target=self.threaded_client,
                 args=(c_socket, c_address),
                 daemon=True
             )
             c_thread.start()
 
-    def threadedClient(self, c_socket, c_address):
+    def threaded_client(self, c_socket, c_address):
         print(f"Accepted new connection from {c_address[0]}:{c_address[1]}.")
         self.clients[c_address] = c_socket
         while True:
@@ -69,7 +69,7 @@ class Server:
                     print(data["message"])
                 elif data["type"] == "chunk_request":
                     if data["position"] not in self.chunks.keys():
-                        self.chunks[data["position"]] = source.chunk.Chunk.createFromNoise(
+                        self.chunks[data["position"]] = source.chunk.Chunk.create_from_noise(
                             self.seed, data["position"]
                         )
                         # print(
@@ -98,7 +98,7 @@ class Server:
 
     def run(self):
         socket_thread = threading.Thread(
-            target=self.socketThread,
+            target=self.socket_thread,
             daemon=False  # NOTE: Change this to True when adding physics loop!
         )
         socket_thread.start()

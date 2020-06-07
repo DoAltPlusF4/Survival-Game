@@ -9,7 +9,7 @@ class Chunk:
         self.matrix = matrix
         self.position = position
 
-    def generateTiles(self, application, batch=None):
+    def generate_tiles(self, application, batch=None):
         self.application = application
 
         self.batch = batch
@@ -34,6 +34,7 @@ class Chunk:
                     width=c.TILE_SIZE,
                     height=c.TILE_SIZE,
                     color=tuple(int(colour[i+1:i+3], 16) for i in (0, 2, 4)),
+                    batch=self.batch,
                     group=self.application.world_layers["ground"]
                 )
 
@@ -48,14 +49,13 @@ class Chunk:
             print("WARN: Batch not found, check that you have run generateTiles.")
 
     @staticmethod
-    def createBlank(position):
+    def create_blank(position):
         matrix = [[0 for _ in range(16)] for _ in range(16)]
 
         return Chunk(matrix, position)
 
     @staticmethod
-    def createFromNoise(seed, position):
-
+    def create_from_noise(seed, position):
         matrix = [[0 for _ in range(16)] for _ in range(16)]
         for x in range(16):
             for y in range(16):
