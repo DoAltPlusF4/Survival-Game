@@ -52,6 +52,8 @@ class Client:
         self.ui_batch = pyglet.graphics.Batch()
         self.fps_display.label.batch = self.ui_batch
 
+        self.debug_mode = False
+
         self.camera_position = pymunk.Vec2d.zero()
         self.camera_chunk = (0, 0)
         self.camera_zoom = 1
@@ -77,16 +79,20 @@ class Client:
         self.window.clear()
         with self.world_camera:
             self.world_batch.draw()
-            debug_draw_options = pymunk.pyglet_util.DrawOptions()
-            self.physics_space.debug_draw(debug_draw_options)
+            if self.debug_mode:
+                debug_draw_options = pymunk.pyglet_util.DrawOptions()
+                self.physics_space.debug_draw(debug_draw_options)
         self.ui_batch.draw()
 
     def on_key_press(self, button, modifiers):
+        if button == key.F3:
+            self.debug_mode = not self.debug_mode
         if button == key.ENTER:
             col = {
-                "type": "circle",
+                "type": "rect",
                 "x": 0, "y": 0,
-                "radius": 10,
+                "width": 10, "height": 10,
+                "radius": 0,
                 "collision_type": 0
             }
 
@@ -177,20 +183,15 @@ class Client:
                 header = header_bytes.decode("utf-8")
 
                 length = int(header.strip())
-                message = self.socket.recv(length)
-
-                broken = False
+                message = b""
                 tries = 0
-                while True:
-                    try:
-                        data = pickle.loads(message)
-                        break
-                    except pickle.UnpicklingError:
-                        broken = True
-                        tries += 1
-                        message += self.socket.recv(1)
-                if broken:
+                while len(message) < length:
+                    message += self.socket.recv(length - len(message))
+                    tries += 1
+                if tries > 1:
                     print(f"Resolved broken packet with {tries} tries.")
+
+                data = pickle.loads(message)
 
                 if data["type"] == "log":
                     print(data["message"])

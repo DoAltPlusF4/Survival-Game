@@ -47,19 +47,12 @@ class Server:
                 header = header_bytes.decode("utf-8")
 
                 length = int(header.strip())
-                message = c_socket.recv(length)
-
-                broken = False
+                message = b""
                 tries = 0
-                while True:
-                    try:
-                        data = pickle.loads(message)
-                        break
-                    except pickle.UnpicklingError:
-                        broken = True
-                        tries += 1
-                        message += c_socket.recv(1)
-                if broken:
+                while len(message) < length:
+                    message += self.socket.recv(length - len(message))
+                    tries += 1
+                if tries > 1:
                     print(f"Resolved broken packet with {tries} tries.")
 
                 if "type" not in data.keys():
