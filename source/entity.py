@@ -1,7 +1,7 @@
 import pyglet
 import pymunk
 
-from .dict_to_collider import dict_to_collider
+from .col_dicts import dict_to_collider
 
 
 class Entity(pymunk.Body):
@@ -14,7 +14,7 @@ class Entity(pymunk.Body):
 
         if colliders is not None:
             for collider in colliders:
-                self.add_collider(colliders)
+                self.add_collider(collider)
 
     @property
     def space(self):
@@ -37,11 +37,12 @@ class Entity(pymunk.Body):
 
         self.colliders.append(col)
 
-    def create_sprite(self, application, colour, batch=None, group=None):
+    def create_sprite(self, colour, width, height, batch=None, group=None):
         self.sprite = pyglet.shapes.Rectangle(
             x=self.position.x,
             y=self.position.y,
-            width=14, height=14,
+            width=width,
+            height=height,
             color=colour,
             batch=batch,
             group=group

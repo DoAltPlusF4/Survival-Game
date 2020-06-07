@@ -1,3 +1,3 @@
-from . import camera, chunk, constants, entity
-from .dict_to_collider import dict_to_collider
+from . import camera, chunk, col_dicts, constants, entity
+from .col_dicts import dict_to_collider
 from .spiral import spiral

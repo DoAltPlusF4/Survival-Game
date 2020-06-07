@@ -6,6 +6,7 @@ import threading
 
 import pyglet
 import pymunk
+import pymunk.pyglet_util
 from pyglet.window import key, mouse
 
 import source
@@ -29,11 +30,18 @@ class Client:
         self.window = pyglet.window.Window(
             width=1280,
             height=720,
-            caption="Chunk Test 1",
+            caption="Entity Test 1",
             resizable=True
         )
         self.window.set_minimum_size(*c.VIEWPORT_SIZE)
         self.window.push_handlers(self)
+
+        self.fps_display = pyglet.window.FPSDisplay(window=self.window)
+        self.fps_display.label.color = (255, 255, 255, 200)
+
+        self.key_handler = key.KeyStateHandler()
+        self.mouse_handler = mouse.MouseStateHandler()
+        self.window.push_handlers(self.key_handler, self.mouse_handler)
 
         self.world_batch = pyglet.graphics.Batch()
         self.world_camera = source.camera.Camera(
@@ -42,18 +50,13 @@ class Client:
             max_zoom=float("inf")
         )
         self.ui_batch = pyglet.graphics.Batch()
-
-        self.fps_display = pyglet.window.FPSDisplay(window=self.window)
         self.fps_display.label.batch = self.ui_batch
-        self.fps_display.label.color = (255, 255, 255, 200)
 
         self.camera_position = pymunk.Vec2d.zero()
         self.camera_chunk = (0, 0)
         self.camera_zoom = 1
 
-        self.key_handler = key.KeyStateHandler()
-        self.mouse_handler = mouse.MouseStateHandler()
-        self.window.push_handlers(self.key_handler, self.mouse_handler)
+        self.physics_space = pymunk.Space()
 
         self.position_label = pyglet.text.Label(
             text=f"X: {round(self.camera_position.x/c.TILE_SIZE, 3)}, Y: {round(self.camera_position.y/c.TILE_SIZE, 3)}",
@@ -62,6 +65,8 @@ class Client:
             x=5,
             y=40
         )
+
+        self.entities = []
 
         self.chunks = {}
         self.chunk_buffer = {}
@@ -72,9 +77,27 @@ class Client:
         self.window.clear()
         with self.world_camera:
             self.world_batch.draw()
+            debug_draw_options = pymunk.pyglet_util.DrawOptions()
+            self.physics_space.debug_draw(debug_draw_options)
         self.ui_batch.draw()
 
+    def on_key_press(self, button, modifiers):
+        if button == key.ENTER:
+            col = {
+                "type": "circle",
+                "x": 0, "y": 0,
+                "radius": 10,
+                "collision_type": 0
+            }
+
+            entity = source.entity.Entity(
+                position=self.camera_position,
+                colliders=[col]
+            )
+            entity.space = self.physics_space
+
     def update(self, dt):
+        self.physics_space.step(dt)
         self.position_camera()
         self.camera_chunk = (
             math.floor(self.camera_position.x/c.TILE_SIZE/c.CHUNK_SIZE),
