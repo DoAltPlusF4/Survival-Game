@@ -37,10 +37,11 @@ class Entity(pymunk.Body):
 
         self.colliders.append(col)
 
-    def create_sprite(self, colour, width, height, batch=None, group=None):
+    def create_sprite(self, colour, offset, width, height, batch=None, group=None):
+        self.sprite_offset = pymunk.Vec2d(offset)
         self.sprite = pyglet.shapes.Rectangle(
-            x=self.position.x,
-            y=self.position.y,
+            x=self.position.x+self.sprite_offset.x,
+            y=self.position.y+self.sprite_offset.y,
             width=width,
             height=height,
             color=colour,
@@ -49,7 +50,7 @@ class Entity(pymunk.Body):
         )
 
     def update_sprite(self):
-        self.sprite.position = tuple(self.position)
+        self.sprite.position = tuple(self.position+self.sprite_offset)
 
     def delete(self):
         self.sprite.delete()
