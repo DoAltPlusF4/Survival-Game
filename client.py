@@ -179,17 +179,15 @@ class Client:
     def socket_thread(self):
         while True:
             try:
-                header_bytes = self.socket.recv(c.HEADER_SIZE)
+                header_bytes = b""
+                while len(header_bytes) < c.HEADER_SIZE:
+                    header_bytes += self.socket.recv(c.HEADER_SIZE)
                 header = header_bytes.decode("utf-8")
-
                 length = int(header.strip())
+
                 message = b""
-                tries = 0
                 while len(message) < length:
                     message += self.socket.recv(length - len(message))
-                    tries += 1
-                if tries > 1:
-                    print(f"Resolved broken packet with {tries} tries.")
 
                 data = pickle.loads(message)
 

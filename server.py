@@ -43,17 +43,15 @@ class Server:
         self.clients[c_address] = c_socket
         while True:
             try:
-                header_bytes = c_socket.recv(c.HEADER_SIZE)
+                header_bytes = b""
+                while len(header_bytes) < c.HEADER_SIZE:
+                    header_bytes += c_socket.recv(c.HEADER_SIZE)
                 header = header_bytes.decode("utf-8")
-
                 length = int(header.strip())
+
                 message = b""
-                tries = 0
                 while len(message) < length:
                     message += c_socket.recv(length - len(message))
-                    tries += 1
-                if tries > 1:
-                    print(f"Resolved broken packet with {tries} tries.")
 
                 data = pickle.loads(message)
 
