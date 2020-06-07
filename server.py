@@ -50,10 +50,12 @@ class Server:
                 message = b""
                 tries = 0
                 while len(message) < length:
-                    message += self.socket.recv(length - len(message))
+                    message += c_socket.recv(length - len(message))
                     tries += 1
                 if tries > 1:
                     print(f"Resolved broken packet with {tries} tries.")
+
+                data = pickle.loads(message)
 
                 if "type" not in data.keys():
                     print(f"Received invalid request:\n{data}")
