@@ -87,20 +87,6 @@ class Client:
     def on_key_press(self, button, modifiers):
         if button == key.F3:
             self.debug_mode = not self.debug_mode
-        if button == key.ENTER:
-            col = {
-                "type": "rect",
-                "x": 0, "y": 0,
-                "width": 10, "height": 10,
-                "radius": 0,
-                "collision_type": 0
-            }
-
-            entity = source.entity.Entity(
-                position=self.camera_position,
-                colliders=[col]
-            )
-            entity.space = self.physics_space
 
     def update(self, dt):
         self.physics_space.step(dt)
