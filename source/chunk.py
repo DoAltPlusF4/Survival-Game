@@ -34,7 +34,7 @@ class Chunk:
                     width=c.TILE_SIZE,
                     height=c.TILE_SIZE,
                     color=tuple(int(colour[i+1:i+3], 16) for i in (0, 2, 4)),
-                    batch=self.batch
+                    group=self.application.world_layers["ground"]
                 )
 
     def delete(self):

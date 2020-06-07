@@ -24,6 +24,8 @@ class Client:
             socket.AF_INET, socket.SOCK_STREAM
         )
 
+        self.create_layers()
+
         self.window = pyglet.window.Window(
             width=1280,
             height=720,
@@ -203,6 +205,23 @@ class Client:
         message = pickle.dumps(data)
         header = bytes(f"{len(message):<{c.HEADER_SIZE}}", "utf-8")
         return self.socket.sendall(header + message)
+
+    def create_layers(self):
+        self.world_layers = {}
+        self.world_layers["master"] = pyglet.graphics.Group()
+        for layer in c.WORLD_LAYERS:
+            self.world_layers[layer] = pyglet.graphics.OrderedGroup(
+                c.WORLD_LAYERS.index(layer)+1,
+                parent=self.world_layers["master"]
+            )
+
+        self.ui_layers = {}
+        self.ui_layers["master"] = pyglet.graphics.Group()
+        for layer in c.UI_LAYERS:
+            self.ui_layers[layer] = pyglet.graphics.OrderedGroup(
+                c.UI_LAYERS.index(layer)+1,
+                parent=self.ui_layers["master"]
+            )
 
     def run(self):
         while True:

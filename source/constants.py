@@ -13,6 +13,14 @@ VIEWPORT_SIZE = (
     round(CHUNK_SIZE*TILE_SIZE)
 )
 
+# Layers
+WORLD_LAYERS = [
+    "ground",
+    "player"
+]
+UI_LAYERS = [
+]
+
 # Tile Colours, will be moved into the mods system
 # TODO: Add actual tile resources.
 TILES = {
