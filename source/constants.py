@@ -7,7 +7,7 @@ HEADER_SIZE = 32
 
 # Game Settings, should be configurable
 CAMERA_SPEED = 4
-LOAD_DISTANCE = 1
+LOAD_DISTANCE = 2
 VIEWPORT_SIZE = (
     round(CHUNK_SIZE*TILE_SIZE*1.5),
     round(CHUNK_SIZE*TILE_SIZE)
