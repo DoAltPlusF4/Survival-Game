@@ -49,6 +49,8 @@ class Client:
             min_zoom=0,
             max_zoom=float("inf")
         )
+        self.debug_draw_options = pymunk.pyglet_util.DrawOptions()
+
         self.ui_batch = pyglet.graphics.Batch()
         self.fps_display.label.batch = self.ui_batch
 
@@ -77,8 +79,7 @@ class Client:
         with self.world_camera:
             self.world_batch.draw()
             if self.debug_mode:
-                debug_draw_options = pymunk.pyglet_util.DrawOptions()
-                self.physics_space.debug_draw(debug_draw_options)
+                self.physics_space.debug_draw(self.debug_draw_options)
         self.ui_batch.draw()
 
     def on_key_press(self, button, modifiers):
