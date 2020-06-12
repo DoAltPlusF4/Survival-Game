@@ -174,7 +174,7 @@ class Client:
                         self.chunk_buffer[data["chunk"].position] = data["chunk"]
                 elif data["type"] == "player_assignment":
                     self.player = data["player"]
-                    self.player.create_collider()
+                    self.player.active = True
                     self.player.space = self.physics_space
                     self.entities.append(self.player)
 

@@ -10,6 +10,7 @@ from .col_dicts import dict_to_collider
 
 class Entity(pymunk.Body):
     _space = None
+    _active = True
 
     def __init__(self, position=(0, 0), body_type=pymunk.Body.DYNAMIC, colliders: list = None):
         super().__init__(mass=1, moment=float("inf"), body_type=body_type)
@@ -26,6 +27,21 @@ class Entity(pymunk.Body):
             self.position.x / c.TILE_SIZE // c.CHUNK_SIZE,
             self.position.y / c.TILE_SIZE // c.CHUNK_SIZE
         )
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, active):
+        if active:
+            for collider in self.colliders:
+                collider.body = self
+        else:
+            for collider in self.colliders:
+                collider.body = None
+
+        self._active = active
 
     @property
     def space(self):
@@ -63,3 +79,17 @@ class Entity(pymunk.Body):
 
     def delete(self):
         self.sprite.delete()
+
+    def __getstate__(self):
+        d = super().__getstate__()
+
+        d["special"].append(("active", self._active))
+
+        return d
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+
+        for k, v in state["special"]:
+            if k == "active":
+                self._active = v

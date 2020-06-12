@@ -1,14 +1,13 @@
 import pyglet
 import pymunk
 
+from . import constants as c
 from .entity import Entity
 
 
 class Player(Entity):
     def __init__(self, *args, **kwargs):
-        super().__init__()
-
-    def create_collider(self):
+        super().__init__(position=(8*c.TILE_SIZE, 8*c.TILE_SIZE))
         collider = {
             "type": "circle",
             "offset": (0, 0),
@@ -16,8 +15,6 @@ class Player(Entity):
             "collision_type": 0
         }
         self.add_collider(collider)
-
-    # TODO: Figure out how to create the collider on initialisation.
 
     def create_sprite(self, batch=None, group=None):
         self.sprite_offset = pymunk.Vec2d.zero()

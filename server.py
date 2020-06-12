@@ -58,20 +58,23 @@ class Server:
         self.entities.append(player)
         self.players[c_socket] = player
 
+        player.active = False
         data = {
             "type": "player_assignment",
             "player": player
         }
         self.send(c_socket, data)
+        player.active = True
 
-        player.create_collider()
         player.space = self.physics_space
 
         while True:
             try:
                 header_bytes = b""
                 while len(header_bytes) < c.HEADER_SIZE:
-                    header_bytes += c_socket.recv(c.HEADER_SIZE)
+                    header_bytes += c_socket.recv(
+                        c.HEADER_SIZE - len(header_bytes)
+                    )
                 header = header_bytes.decode("utf-8")
                 length = int(header.strip())
 
@@ -103,10 +106,11 @@ class Server:
                 else:
                     print(f"Received invalid request:\n{data}")
 
-            except (ConnectionAbortedError, ConnectionResetError) as e:
+            except (ConnectionAbortedError, ConnectionResetError, TimeoutError) as e:
                 print(
                     f"Connection from {c_address[0]}:{c_address[1]} was reset."
                 )
+                c_socket.close()
                 del self.clients[c_address]
                 del self.players[c_socket]
                 break
