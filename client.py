@@ -153,7 +153,9 @@ class Client:
             try:
                 header_bytes = b""
                 while len(header_bytes) < c.HEADER_SIZE:
-                    header_bytes += self.socket.recv(c.HEADER_SIZE)
+                    header_bytes += self.socket.recv(
+                        c.HEADER_SIZE - len(header_bytes)
+                    )
                 header = header_bytes.decode("utf-8")
                 length = int(header.strip())
 
